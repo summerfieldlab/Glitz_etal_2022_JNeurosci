@@ -9,134 +9,53 @@
 
 %  c: Leonie Glitz, University of Oxford, 2020
 
-% currently, the mask read in for this is the negative SPE mask
+% currently, the mask read in for this is the negative SPE mask, if you
+% want to run this for any other brain region, please change the BOLD.mat
+% file read in
 
 % TO-DO: adjust folder for data to read in once everything is on github
 
-%% Step 1: calculate beta indices of conditions of interest for each sub & block!
+%% Step 1: load the masked voxel data
 
-load('/Users/leonieglitz/Downloads/RW_flex_onset.mat');
-behDat = readtable('/Volumes/Samsung_T5/gems/gem_dat.csv');
+load('/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/onset_fMRI_data/BOLD_onset_SPEROI.mat');
+%this loads a struct BOLD(sub).sess(sess).gem(context).prob(probRange).data
+%where data is a trial x voxel matrix with the outputs of GLM2a for the
+%mask of interest, sorted by subject, session, context (==gem) and
+%probability range (subjective probabilities of presented door transitioning
+%to riksy state, divided into quartiles)
 
-behDatNoNaN = behDat(~isnan(behDat.chooseLeft),:);
+%% Step 2: compute the representational (dis)similarity between different probability bins and contexts
 
-includedSubs = [1:20 22:27 29:31];
-
-%we want to run separate RSAs for dependent and independent gems with
-%themselves; within that we want to split up by model-based prob of
-%gain/loss of door presented
-
-frequencyCount(1:length(includedSubs),1:16,1) = 0;
-
-for sub = 1:length(includedSubs)
-    
-    currSubject = onset.sub(includedSubs(sub));
-    currProbTmp = [currSubject.sess(1).RLmod.prob_rl_doorpresented_combined;currSubject.sess(2).RLmod.prob_rl_doorpresented_combined;currSubject.sess(3).RLmod.prob_rl_doorpresented_combined;currSubject.sess(4).RLmod.prob_rl_doorpresented_combined]
-    currProbEsts = sort(currProbTmp);
-    medianVal = median(currProbEsts);
-    quartilesCurr = [currProbEsts(round(length(currProbEsts)/4)),medianVal,currProbEsts((3* round(length(currProbEsts)/4))) , max(currProbEsts)];
-    quartilesSubs(sub,:) = quartilesCurr;
-    
-    for sess = 1:4
-        
-        currSession = currSubject.sess(sess);
-        
-        for gemNo = 1:4
-            
-            gem_dat_Data = find(currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(1) & currSession.parametric.gem_n==gemNo);
-            frequencyCount(sub,(4*(gemNo-1)+1),sess) = length(gem_dat_Data);
-            subject(sub).sess(sess).gem(gemNo).prob(1).data = gem_dat_Data;
-            
-            gem_dat_Data = [];
-            
-            gem_dat_Data = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(1) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(2) & currSession.parametric.gem_n==gemNo);
-            frequencyCount(sub,(4*(gemNo-1)+2),sess) = length(gem_dat_Data);
-            subject(sub).sess(sess).gem(gemNo).prob(2).data = gem_dat_Data;
-            
-            gem_dat_Data = [];
-            
-            gem_dat_Data = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(2) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(3) & currSession.parametric.gem_n==gemNo);
-            frequencyCount(sub,(4*(gemNo-1)+3),sess) = length(gem_dat_Data);
-            subject(sub).sess(sess).gem(gemNo).prob(3).data = gem_dat_Data;
-            
-            gem_dat_Data = [];
-            
-            gem_dat_Data = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(3) & currSession.RLmod.prob_rl_doorpresented_combined <= 1 & currSession.parametric.gem_n==gemNo);
-            frequencyCount(sub,(4*(gemNo-1)+4),sess) = length(gem_dat_Data);
-            subject(sub).sess(sess).gem(gemNo).prob(4).data = gem_dat_Data;
-            
-            gem_dat_Data = [];
-        end
-    end
-end
-%% Step 2:  read in the appropriate beta files and compute the representational (dis)similarity
-
-fs = filesep; %so script can be used on mac or windows
-
-%setup
-currentModelFolder = '/Volumes/Samsung_T5/gems/singleTrialModelNeil/Onset'; %where data is
-
-numRuns = 4;
 
 subjectString = [1:20 22:27 29:31]; %this is important if you have exclusions
 
-fileBase = 'beta_0'; %base for reading in the beta images
-fileEnding = '.nii'; %ending
-subPrefix = 'sub';
 
-currentVoxelsReshaped = [];
-
-relevantVoxels = struct(); %ensures that you don't get a struct error later
-relevantVoxels.mask = spm_read_vols(spm_vol('/Users/leonieglitz/Downloads/SPE_mask_neg.nii')); %read in mask for ROI - make sure same dimensions/resolution as your fMRI images
-relevantVoxels.ROI = find(relevantVoxels.mask>0); %find where ROI is 1 in the mask - these are the betas from the  ROI we want
-
-emptyConditions = 0;
 
 
 %loop over subjects
 for sub = 1:length(subjectString)
     currentVoxelsReshaped =[];
     
-    %load the SPM.mat file
-    load([currentModelFolder,...
-        fs,subPrefix,num2str(subjectString(sub)),fs,'SPM.mat']); %load in the current subject's SPM file
-    
     %loop over contexts and find corresponding beta.nii files
-    for gem = 1:4 
+    for context = 1:4 
         %loop over probability ranges
         for probRange = 1:4
             currentBetas = [];
-            currentVoxels = [];
             currentVoxelsLocal =[];
             %loop over sessions
             for sess = 1:4
-                uniqueName = ['Sn(',num2str(sess),') door_onset_'];
+                currentVoxelsLocal = [];
+                currentBetas = [];
                 
-                conditionCurr = subject(sub).sess(sess).gem(gem).prob(probRange).data; %here sub is used for indexing as data encoded in struct above indexed by sub
+                currentBetas = BOLD(sub).sess(sess).gem(context).prob(probRange).data;
                 
-                for betas = 1:length(conditionCurr)
-                    
-                    uniqueNameSpec = [uniqueName,num2str(conditionCurr(betas)),'*bf'];
-                    index =[];
-                    index = find(contains(SPM.xX.name,uniqueNameSpec)); %find index of beta corresponding to contrast of interest
-                    if isempty(index)
-                    else
-                        currentBetas = spm_read_vols(spm_vol(sprintf([currentModelFolder,...
-                            fs, subPrefix,num2str(subjectString(sub)),fs,fileBase,sprintf('%03d',index),fileEnding]))); %read in beta file
-                        
-                        %put the relevant betas into a vector
-                        currentBetas = currentBetas(:);
-                        currentBetas = currentBetas(relevantVoxels.ROI); %select only those voxels that are part of your ROI
-                        currentBetas = currentBetas(~isnan(currentBetas)); %in case there are edge-NaNs, exclude
-                        currentVoxelsLocal(betas,:) = currentBetas'; %transpose (optional) and save in format currentVoxels(trial,betaValues)
-                    end
-                end
+                currentVoxelsLocal = currentBetas; 
+ 
                 if isempty(currentVoxelsLocal)
                     'one empty condition';
-                    emptyConditions = emptyConditions +1;
-                    currentVoxelsGlobal((probRange+(4*(sess-1)) + (gem-1)*16),:) = repmat(NaN,([1,69]));
+                    currentVoxelsGlobal((probRange+(4*(sess-1)) + (context-1)*16),:) = repmat(NaN,([1,69]));
                 else
-                    currentVoxelsGlobal((probRange+(4*(sess-1)) + (gem-1)*16),:) = nanmean(currentVoxelsLocal,1); %save sessions
+                    currentVoxelsGlobal((probRange+(4*(sess-1)) + (context-1)*16),:) = nanmean(currentVoxelsLocal,1); %save sessions
                 end
             end
         end 
@@ -172,6 +91,12 @@ end
 dissimLargeDepNaNDiag = dissimVeryLarge(:,1:32,1:32); %all dependent block parts
 dissimLargeWithinNaNDiag = dissimLargeDepNaNDiag(:,1:16,1:16); %same-to-same context dissimilarity
 dissimLargeDepBetweenNaNDiag = dissimLargeDepNaNDiag(:,1:16,17:32); %same-to-different context dissimilarity
+
+%now we NaN out the diagonal 4x4s
+dissimLargeDepBetweenNaNDiag(:,1:4, 1:4) = NaN;
+dissimLargeDepBetweenNaNDiag(:,5:8, 5:8) = NaN;
+dissimLargeDepBetweenNaNDiag(:,9:12, 9:12) = NaN;
+dissimLargeDepBetweenNaNDiag(:,13:16, 13:16) = NaN; 
 
 
 %% now the crossvalidation needs to be implemented for the dependent condition
@@ -250,9 +175,12 @@ dependentWithinDifference = cvalWithinDepMeanDiag - cvalWithinDepMeanOffDiag;
 dissimLargeIndepNaNDiag = dissimVeryLarge(:,33:64,33:64);
 dissimLargeIndepWithinNaNDiag = dissimLargeIndepNaNDiag(:,1:16,1:16);
 dissimLargeIndepBetweenNaNDiag = dissimLargeIndepNaNDiag(:,1:16,17:32); 
-simLargeIndepSubBetweenNaNDiag = 1- dissimLargeIndepBetweenNaNDiag(:,:,:);
 
-figure; heatmap(round(squeeze(nanmean(dissimLargeIndepBetweenNaNDiag)),3),'Colormap',summer(8), 'FontSize', 20);
+%now we NaN out the diagonal 4x4s for the between context comparison
+dissimLargeIndepBetweenNaNDiag(:,1:4, 1:4) = NaN;
+dissimLargeIndepBetweenNaNDiag(:,5:8, 5:8) = NaN;
+dissimLargeIndepBetweenNaNDiag(:,9:12, 9:12) = NaN;
+dissimLargeIndepBetweenNaNDiag(:,13:16, 13:16) = NaN; 
 %% now the crossvalidation needs to be implemented for the independent condition
 %  to do this, we will first take the 4x4s along the diagonal (same run to
 %  same run) and then average across the remaining 4x4s (crossvalidated, as
