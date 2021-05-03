@@ -49,25 +49,25 @@ for sub = 1:length(includedSubs)
         
         %make below into structs so that diff trial nums do not matter
         
-        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(1) & currSession.parametric.context_n==contextNo);
+        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(1) & currSession.parametric.gem_n==contextNo);
         frequencyCount(sub,(4*(contextNo-1)+1)) = frequencyCount(sub,(4*(contextNo-1)+1)) + length(indicesTmp); 
         subject(sub).sess(sess).context(contextNo).prob(1).data = indicesTmp;
         
         indicesTmp = [];
 
-        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(1) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(2) & currSession.parametric.context_n==contextNo);
+        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(1) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(2) & currSession.parametric.gem_n==contextNo);
         frequencyCount(sub,(4*(contextNo-1)+2)) = frequencyCount(sub,(4*(contextNo-1)+2)) + length(indicesTmp); 
         subject(sub).sess(sess).context(contextNo).prob(2).data = indicesTmp;
         
         indicesTmp = [];
         
-        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(2) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(3) & currSession.parametric.context_n==contextNo);
+        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(2) & currSession.RLmod.prob_rl_doorpresented_combined <= quartilesCurr(3) & currSession.parametric.gem_n==contextNo);
         frequencyCount(sub,(4*(contextNo-1)+3)) = frequencyCount(sub,(4*(contextNo-1)+3)) + length(indicesTmp); 
         subject(sub).sess(sess).context(contextNo).prob(3).data = indicesTmp;
         
         indicesTmp = [];
         
-        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(3) & currSession.RLmod.prob_rl_doorpresented_combined <= 1 & currSession.parametric.context_n==contextNo);
+        indicesTmp = find(currSession.RLmod.prob_rl_doorpresented_combined > quartilesCurr(3) & currSession.RLmod.prob_rl_doorpresented_combined <= 1 & currSession.parametric.gem_n==contextNo);
         frequencyCount(sub,(4*(contextNo-1)+4)) = frequencyCount(sub,(4*(contextNo-1)+4)) + length(indicesTmp); 
         subject(sub).sess(sess).context(contextNo).prob(4).data = indicesTmp;
         
@@ -94,12 +94,12 @@ mask = spm_read_vols(spm_vol('/Volumes/Samsung_T5/gems/RSA/gems_EC/wholeBrainAtt
 maskName = 'wholeBrain';
 
 %read in the model RDMs
-load('/Volumes/Samsung_T5/gems/singleTrialModel/outcomeOnlyModel.mat');
+load('/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/multivariate_analyses/RSA_analyses/RSA_searchlights/model RDMs/outcomeOnlyModel.mat');
 outcomeOnlyDep = outcomeOnlyModel; 
 models(1).RDM = outcomeOnlyDep;
 models(1).name = 'outcomeDependent';
 
-load('/Volumes/Samsung_T5/gems/singleTrialModel/outcomeOnlyModelIndep.mat');
+load('/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/multivariate_analyses/RSA_analyses/RSA_searchlights/model RDMs/outcomeOnlyModelIndep.mat');
 indepOnly = outcomeOnlyModel;
 models(2).RDM  = indepOnly;
 models(2).name = 'outcomeIndependent'; 
@@ -117,7 +117,7 @@ import rsa.util.*
 
 %set toolbox settings
 userOptions.analysisName = 'onsetSearchlight';
-userOptions.rootPath = '/Volumes/Samsung_T5/gems/singleTrialModelNeil/Onset/';
+userOptions.rootPath = '/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/multivariate_analyses/RSA_analyses/RSA_searchlights/onsetSearchlight/';
 userOptions.maskNames = {'whole_brain'};
 userOptions.voxelSize = [3.5 3.5 3.5];
 userOptions.searchlightRadius = 10.5;
@@ -170,7 +170,7 @@ for sub = 1:length(subjectString)
                     currentVoxelsGlobal =[]; 
                     for sess = 1:4
                         uniqueName = ['Sn(',num2str(sess),') door_onset_'];
-                        
+                        currentVoxelsLocal = []; 
                         conditionCurr = subject(sub).sess(sess).context(context).prob(probRange).data;
                         
                         for betas = 1:length(conditionCurr)

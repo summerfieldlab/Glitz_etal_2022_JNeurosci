@@ -34,58 +34,58 @@ for sub = 1:29
         currSession = currSubject(currSubject.block_n == sess+1,:);
         
         %indices for context 1
-        context_dat_Data = find(currSession.pick_black==0 & currSession.context_presented==1 & currSession.outcomeState==1);
+        context_dat_Data = find(currSession.pick_black==0 & currSession.gem_presented==1 & currSession.outcomeState==1);
         subject(sub).sess(sess).context(1).s(1).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==1 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==1 & currSession.outcome~=0);
         subject(sub).sess(sess).context(1).s(1).black_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==1 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==1 & currSession.outcome==0);
         subject(sub).sess(sess).context(1).s(2).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==1 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==1 & currSession.outcome==0);
         subject(sub).sess(sess).context(1).s(2).black_indices = context_dat_Data;
         
         
         %indices for context 2
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==2 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==2 & currSession.outcome~=0);
         subject(sub).sess(sess).context(2).s(1).white_indices = context_dat_Data;
 
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==2 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==2 & currSession.outcome~=0);
         subject(sub).sess(sess).context(2).s(1).black_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==2 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==2 & currSession.outcome==0);
         subject(sub).sess(sess).context(2).s(2).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==2 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==2 & currSession.outcome==0);
         subject(sub).sess(sess).context(2).s(2).black_indices = context_dat_Data;
         
         
         %indices for context 3
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==3 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==3 & currSession.outcome~=0);
         subject(sub).sess(sess).context(3).s(1).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1  & currSession.context_presented==3 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black==1  & currSession.gem_presented==3 & currSession.outcome~=0);
         subject(sub).sess(sess).context(3).s(1).black_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black~=1  & currSession.context_presented==3 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black~=1  & currSession.gem_presented==3 & currSession.outcome==0);
         subject(sub).sess(sess).context(3).s(2).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==3 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==3 & currSession.outcome==0);
         subject(sub).sess(sess).context(3).s(2).black_indices = context_dat_Data;
         
         
         %indices for context 4
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==4 & currSession.outcome~=0)
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==4 & currSession.outcome~=0)
         subject(sub).sess(sess).context(4).s(1).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==4 & currSession.outcome~=0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==4 & currSession.outcome~=0);
         subject(sub).sess(sess).context(4).s(1).black_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black~=1 & currSession.context_presented==4 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black~=1 & currSession.gem_presented==4 & currSession.outcome==0);
         subject(sub).sess(sess).context(4).s(2).white_indices = context_dat_Data;
         
-        context_dat_Data = find(currSession.pick_black==1 & currSession.context_presented==4 & currSession.outcome==0);
+        context_dat_Data = find(currSession.pick_black==1 & currSession.gem_presented==4 & currSession.outcome==0);
         subject(sub).sess(sess).context(4).s(2).black_indices = context_dat_Data;
     end
     
@@ -98,7 +98,7 @@ end
 %SETUP FOR TOOLBOX FUNCTION
 
 relevantVoxels = struct(); %ensures that you don't get a struct error later
-relevantVoxels.mask = spm_read_vols(spm_vol('/Volumes/Samsung_T5/gems/RSA/contexts_EC/wholeBrainAttempt.img')); %read in the mask for each sub
+relevantVoxels.mask = spm_read_vols(spm_vol('/Volumes/Samsung_T5/gems/RSA/gems_EC/wholeBrainAttempt.img')); %read in the mask for each sub
 relevantVoxels.ROI = find(relevantVoxels.mask); %find where ROI is 1 in the mask - these are the betas from the  ROI we want
 
 mask = spm_read_vols(spm_vol('/Volumes/Samsung_T5/gems/RSA/gems_EC/wholeBrainAttempt.img')); %read in the mask again for toolbox function later
@@ -147,7 +147,7 @@ import rsa.util.*
 
 
 userOptions.analysisName = 'outcomeSearchlight';
-userOptions.rootPath = '/Volumes/Samsung_T5/gems/singleTrialModelNeil/Outcome/';
+userOptions.rootPath = '/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/multivariate_analyses/RSA_analyses/RSA_searchlights/outcomeSearchlight/';
 userOptions.maskNames = {'whole_brain'};
 userOptions.voxelSize = [3.5 3.5 3.5];
 userOptions.searchlightRadius = 10.5;
@@ -197,13 +197,14 @@ for sub = 1:length(subjectString)
         for context = 1:4 
             for outcomeState = 1:2
                 for door = 1:2
-                    
-                    
+
                     currentBetas = [];
-                    currentVoxels = [];
+                   
                     currentVoxelsLocal =[];
                     currentVoxelsGlobal =[]; 
+                    
                     for sess = 1:4
+                        currentVoxelsLocal = [];
                         uniqueName = ['Sn(',num2str(sess),') outcome_onset_'];
                         
                         if door == 1
