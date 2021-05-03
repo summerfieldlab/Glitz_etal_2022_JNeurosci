@@ -1,4 +1,4 @@
-function [pDep, statsDep, pIndep, statsIndep, pInteraction, statsInteraction] = RSA_outcome(maskData, fileName)
+function [pDep, statsDep,ciDep, pIndep, statsIndep,ciIndep, pInteraction, statsInteraction, ciInteraction] = RSA_outcome(mask, fileName)
 %% This function is going to run an RSA at the time of outcome in the ROI 
 %  that is specified. It will split trials up by the door chosen (light/dark) 
 %  and whether participants reached the gain/loss or the safe state. Then 
@@ -11,180 +11,46 @@ function [pDep, statsDep, pIndep, statsIndep, pInteraction, statsInteraction] = 
 %  (a similar script for a predecessor of this analysis was written by Neil
 %  Garrett too)
 
-% TAKES INPUTS: maskData (i.e. mask path) and fileName -> save all data
+% TAKES INPUTS: mask (i.e. mask name) and fileName -> save all data
 % under what name 
 
-%% Step 1: calculate beta indices of conditions of interest for each sub!
+%% Step 1: load the masked voxel data
 
-load('/Users/leonieglitz/Downloads/RW_flex_onset.mat');
-behDat = readtable('/Volumes/Samsung_T5/gems/gem_dat.csv');
+load(['/Users/leonieglitz/Desktop/Garrett&Glitz_etal_2021/outcome_fMRI_data/BOLD_outcome_',mask,'.mat']);
+%this loads a struct
+%BOLD(sub).sess(sess).gem(context).state(outcomeState).white_indices or .black_indices
+%where data is a trial x voxel matrix with the outputs of GLM2a for the
+%mask of interest, sorted by subject, session, context (==gem) and
+%probability range (subjective probabilities of presented door transitioning
+%to riksy state, divided into quartiles)
 
-behDatNoNaN = behDat(~isnan(behDat.chooseLeft),:);
-frequencyCount(1:29,1:16) = zeros; 
-
-includedSubs = [1:20 22:27 29:31];
-
-%we want to run separate RSAs for dependent and independent gems with
-%themselves; within that we want to split up by door colour and outcome state
-
-
-for sub = 1:29
-    currSubject = behDatNoNaN(behDatNoNaN.participantID == includedSubs(sub),:);
-    for sess = 1:4
-        currSession = currSubject(currSubject.block_n == sess+1,:);
-                
-        indicesTmp = find(currSession.pick_black==0 & currSession.gem_presented==1 & currSession.outcomeState==1);
-        subject(sub).sess(sess).gem(1).s(1).white_indices = indicesTmp;
-        frequencyCount(sub,1) = frequencyCount(sub,1) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==1 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(1).s(1).black_indices = indicesTmp;
-        frequencyCount(sub,2) = frequencyCount(sub,2) + length(indicesTmp);
-
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==1 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(1).s(2).white_indices = indicesTmp;
-        frequencyCount(sub,3) = frequencyCount(sub,3) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==1 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(1).s(2).black_indices = indicesTmp;
-        frequencyCount(sub,4) = frequencyCount(sub,4) + length(indicesTmp);
-        
-        
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==2 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(2).s(1).white_indices = indicesTmp;
-        frequencyCount(sub,5) = frequencyCount(sub,5) + length(indicesTmp);
-
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==2 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(2).s(1).black_indices = indicesTmp;
-        frequencyCount(sub,6) = frequencyCount(sub,6) + length(indicesTmp);
-        
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==2 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(2).s(2).white_indices = indicesTmp;
-        frequencyCount(sub,7) = frequencyCount(sub,7) + length(indicesTmp);
-        
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==2 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(2).s(2).black_indices = indicesTmp;
-        frequencyCount(sub,8) = frequencyCount(sub,8) + length(indicesTmp);
-        
-        
-        
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==3 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(3).s(1).white_indices = indicesTmp;
-        frequencyCount(sub,9) = frequencyCount(sub,9) + length(indicesTmp);
-
-        
-        indicesTmp = find(currSession.pick_black==1  & currSession.gem_presented==3 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(3).s(1).black_indices = indicesTmp;
-        frequencyCount(sub,10) = frequencyCount(sub,10) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black~=1  & currSession.gem_presented==3 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(3).s(2).white_indices = indicesTmp;
-        frequencyCount(sub,11) = frequencyCount(sub,11) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==3 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(3).s(2).black_indices = indicesTmp;
-        frequencyCount(sub,12) = frequencyCount(sub,12) + length(indicesTmp);
-        
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==4 & currSession.outcome~=0)
-        subject(sub).sess(sess).gem(4).s(1).white_indices = indicesTmp;
-        frequencyCount(sub,13) = frequencyCount(sub,13) + length(indicesTmp);
-       
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==4 & currSession.outcome~=0);
-        subject(sub).sess(sess).gem(4).s(1).black_indices = indicesTmp;
-        frequencyCount(sub,14) = frequencyCount(sub,14) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black~=1 & currSession.gem_presented==4 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(4).s(2).white_indices = indicesTmp;
-        frequencyCount(sub,15) = frequencyCount(sub,15) + length(indicesTmp);
-        
-        indicesTmp = find(currSession.pick_black==1 & currSession.gem_presented==4 & currSession.outcome==0);
-        subject(sub).sess(sess).gem(4).s(2).black_indices = indicesTmp;
-        frequencyCount(sub,16) = frequencyCount(sub,16) + length(indicesTmp);
-        
-    end
-    
- 
-    
-end
-
-
-%% Step 2: read in the appropriate beta files and compute the representational (dis)similarity
-
-
-fs = filesep; %so script can be used on mac or windows
-
-%setup
-currentModelFolder = '/Volumes/Samsung_T5/gems/singleTrialModelNeil/Outcome'; %where your models are generally
-
-subjectString = [1:20 22:27 29:31]; %this is important if you have exclusions
-
-fileBase = 'beta_0'; %base for reading in the beta images
-fileEnding = '.nii'; %ending
-subPrefix = 'sub';
-
-currentVoxelsReshaped = [];
-
-relevantVoxels = struct(); %ensures that you don't get a struct error later
-relevantVoxels.mask = spm_read_vols(spm_vol(maskData)); %read in mask for ROI - make sure same dimensions/resolution as your fMRI images
-relevantVoxels.ROI = find(relevantVoxels.mask>0); %find where ROI is in the mask - these are the betas from the  ROI we want
-
-
+%% Step 2: compute the representational (dis)similarity between contexts and door chosen - outcome state combinations
 
 %loop through subjects
-for sub = 1:length(subjectString)
-    currentVoxelsReshaped =[];
+for sub = 1:29
+    currentVoxelsReshaped = []; 
     currentVoxelsGlobal =[];
-    %load the SPM.mat file
-    load([currentModelFolder,...
-        fs,subPrefix,num2str(subjectString(sub)),fs,'SPM.mat']); %load in the current subject's SPM file
-    
+        
     %loop through conditions/gems and find corresponding beta.nii files
-        for gem = 1:4 %conditions
+        for context = 1:4 %conditions
             for outcomeState = 1:2
                 for door = 1:2
                     
-                    currentBetas = [];
-                    currentVoxels = [];
-                    currentVoxelsLocal =[];
                     currentVoxelsGlobal =[]; 
                     for sess = 1:4
-                        uniqueName = ['Sn(',num2str(sess),') outcome_onset_'];
                         
+                        BOLD_data = [];                       
                         if door == 1
-                            conditionCurr = subject(sub).sess(sess).gem(gem).s(outcomeState).white_indices;
+                            BOLD_data = BOLD(sub).sess(sess).gem(context).state(outcomeState).light_indices;
                         else
-                            conditionCurr = subject(sub).sess(sess).gem(gem).s(outcomeState).black_indices;
+                            BOLD_data = BOLD(sub).sess(sess).gem(context).state(outcomeState).dark_indices;
                         end
                         
-                        for betas = 1:length(conditionCurr)
-
-                            uniqueNameSpec = [uniqueName,num2str(conditionCurr(betas)),'*bf'];
-                            index =[];
-                            index = find(contains(SPM.xX.name,uniqueNameSpec)); %find indices of betas corresponding to contrast of interest
-                            if isempty(index)
-                            else
-                            currentBetas = spm_read_vols(spm_vol(sprintf([currentModelFolder,...
-                                fs, subPrefix,num2str(subjectString(sub)),fs,fileBase,sprintf('%03d',index),fileEnding]))); %read in beta file
-                             
-                            %put the relevant betas into a vector
-                            currentBetas = currentBetas(:);
-                            currentBetas = currentBetas(relevantVoxels.ROI); %select only those voxels that are part of your ROI
-                            currentBetas = currentBetas(~isnan(currentBetas)); %in case there are edge-NaNs, exclude
-                            currentVoxelsLocal(betas,:) = currentBetas'; %transpose (optional) and save in format currentVoxels(run,gem,betaValues) -> betas correspond to run
-                            end 
-                        end
-                         currentVoxelsGlobal = [currentVoxelsGlobal;currentVoxelsLocal];
+                        currentVoxelsGlobal = [currentVoxelsGlobal;BOLD_data];
                     end
                     
                     meanCurrentVoxels = mean(currentVoxelsGlobal,1);
-                    currentVoxelsReshaped((gem-1)*4+(outcomeState-1)*2 + door,:) = meanCurrentVoxels; %save as 16xvoxels matrix to be able to use pdist to obtain a 16x16 correlation matrix
+                    currentVoxelsReshaped((context-1)*4+(outcomeState-1)*2 + door,:) = meanCurrentVoxels; %save as 16xvoxels matrix to be able to use pdist to obtain a 16x16 correlation matrix
                 
                 end
             end
@@ -232,6 +98,8 @@ dataset2 = [meanDiagIndepZScored-meanOffDiagIndepZScored];
 
 colour = [.5,.5,.5];
 colour2 = [225,225,225]/255;
+datasets = [1,2];
+
 xx = {dataset1; dataset2};
 hold all;
 boxplot([dataset1';dataset2'],[repmat(1,[29,1]);repmat(2,[29,1])],'Labels',{'Dependent', 'Independent'})
@@ -259,13 +127,13 @@ hold off
 %% t-tests
 
 %dependent condition
-[h,pDep,ci,statsDep]= ttest(meanDiagDepZScored,meanOffDiagDepZScored);
+[h,pDep,ciDep,statsDep]= ttest(meanDiagDepZScored,meanOffDiagDepZScored);
 
 %independent condition
-[h,pIndep,ci,statsIndep]= ttest(meanDiagIndepZScored,meanOffDiagIndepZScored);
+[h,pIndep,ciIndep,statsIndep]= ttest(meanDiagIndepZScored,meanOffDiagIndepZScored);
 
 %interaction
-[h,pInteraction,ci,statsInteraction] = ttest(meanDiagDepZScored-meanOffDiagDepZScored,meanDiagIndepZScored-meanOffDiagIndepZScored);
+[h,pInteraction,ciInteraction,statsInteraction] = ttest(meanDiagDepZScored-meanOffDiagDepZScored,meanDiagIndepZScored-meanOffDiagIndepZScored);
 
 save(fileName);
 
