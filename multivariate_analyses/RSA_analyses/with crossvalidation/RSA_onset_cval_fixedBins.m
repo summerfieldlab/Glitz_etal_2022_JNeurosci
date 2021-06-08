@@ -1,6 +1,19 @@
-%% This script is going to run an RSA on the different states that participants get to and the different gems in EC
-%   its purpose is to replicate Neil's analyses independently
-%   this particular analysis separates
+%% This script is going to run an RSA at the time of door onset  
+%  that is specified. It will split trials up into four bins according to their 
+%  probability of the presented door leading to the gain/loss state. Then 
+%  we will compare the representational similarity of identical and 
+%  non-identical transition probability bins across the two contexts in 
+%  each of our conditions (dependent and independent). Crossvalidation will
+%  be performed by excluding the same session - same-session dissimilarity
+%  quadrants when meaning across sessions. 
+
+%  c: Leonie Glitz, University of Oxford, 2020
+
+% currently, the mask read in for this is the negative SPE mask, if you
+% want to run this for any other brain region, please change the BOLD.mat
+% file read in
+
+% TO-DO: adjust folder for data to read in once everything is on github
 
 
 %% Step 1: calculate beta indices of conditions of interest for each sub!
