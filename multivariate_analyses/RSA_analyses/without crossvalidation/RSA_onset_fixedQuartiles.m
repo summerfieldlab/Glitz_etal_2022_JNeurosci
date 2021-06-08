@@ -1,4 +1,4 @@
-%% This function is going to run an RSA at the time of door onset in the ROI
+%% This script is going to run an RSA at the time of door onset in the ROI
 %  that is specified. It will split trials up into four probability bins by their
 %  probability of the presented door leading to the gain/loss state. Then
 %  we will compare the representational similarity of identical and
@@ -90,7 +90,7 @@ subPrefix = 'sub';
 currentVoxelsReshaped = [];
 
 relevantVoxels = struct(); %ensures that you don't get a struct error later
-relevantVoxels.mask = spm_read_vols(spm_vol('SPE_mask_neg.nii')); %read in mask for ROI
+relevantVoxels.mask = spm_read_vols(spm_vol('masks/SPE_mask_neg.nii')); %read in mask for ROI
 relevantVoxels.ROI = find(relevantVoxels.mask); %find where ROI is 1 in the mask - these are the indices of the betas from the  ROI we want
 
 %loop through subjects
