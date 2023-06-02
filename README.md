@@ -1,4 +1,4 @@
-# Glitz_etal
+# Glitz_etal_2022_JNeurosci
 
 Code for the paper <i> Model sharing
 in the human medial temporal lobe </i>; Glitz, Juechems, Summerfield & Garrett; 2022 https://www.jneurosci.org/content/jneuro/42/27/5410.full.pdf 
